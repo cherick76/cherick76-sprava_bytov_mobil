@@ -2,7 +2,7 @@ workflows:
   android-release:
     name: android-release
     max_build_duration: 60
-    instance_type: linux_x2
+    instance_type: linux
 
     triggering:
       events:
@@ -14,6 +14,12 @@ workflows:
 
     environment:
       flutter: stable
+      android_signing:
+        - keystore: android_release_keystore
+          keystore_environment_variable: CM_KEYSTORE
+          keystore_password_environment_variable: CM_KEYSTORE_PASSWORD
+          key_alias_environment_variable: CM_KEY_ALIAS
+          key_password_environment_variable: CM_KEY_PASSWORD
 
     scripts:
       - name: Install dependencies
@@ -26,7 +32,7 @@ workflows:
         script: flutter test
 
       - name: Build release APK
-        script: flutter build apk --release
+        script: flutter build apk --release --dart-define=BASE_URL=https://sb.chudy.online --dart-define=APP_ENV=true
 
     artifacts:
       - build/app/outputs/flutter-apk/app-release.apk
