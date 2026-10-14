@@ -14,16 +14,20 @@ workflows:
 
     environment:
       flutter: stable
-      android_signing:
-        - keystore: android_release_keystore
-          keystore_environment_variable: CM_KEYSTORE
-          keystore_password_environment_variable: CM_KEYSTORE_PASSWORD
-          key_alias_environment_variable: CM_KEY_ALIAS
-          key_password_environment_variable: CM_KEY_PASSWORD
       groups:
         - android-credentials
 
     scripts:
+      - name: Set up keystore
+        script: |
+          echo $CM_KEYSTORE | base64 --decode > /tmp/android_release_keystore.jks
+          cat >> android/local.properties <<EOF
+          releaseKeyStore=/tmp/android_release_keystore.jks
+          releaseKeyStorePassword=$CM_KEYSTORE_PASSWORD
+          releaseKeyAlias=$CM_KEY_ALIAS
+          releaseKeyPassword=$CM_KEY_PASSWORD
+          EOF
+
       - name: Install dependencies
         script: flutter pub get
 
@@ -35,16 +39,7 @@ workflows:
 
       - name: Build release APK
         script: flutter build apk --release --dart-define=BASE_URL=https://sb.chudy.online --dart-define=APP_ENV=true
-      
-      - name: Set up keystore
-        script: |
-          echo $CM_KEYSTORE | base64 --decode > /tmp/android_release_keystore.jks
-          cat >> android/local.properties <<EOF
-          releaseKeyStore=/tmp/android_release_keystore.jks
-          releaseKeyStorePassword=$CM_KEYSTORE_PASSWORD
-          releaseKeyAlias=$CM_KEY_ALIAS
-          releaseKeyPassword=$CM_KEY_PASSWORD
-          EOF
 
     artifacts:
       - build/app/outputs/flutter-apk/app-release.apk
+
