@@ -20,13 +20,14 @@ workflows:
     scripts:
       - name: Set up keystore
         script: |
-          echo $CM_KEYSTORE | base64 --decode > /tmp/android_release_keystore.jks
+          printf '%s' "$CM_KEYSTORE" | base64 --decode > /tmp/android_release_keystore.jks
           cat >> android/local.properties <<EOF
           releaseKeyStore=/tmp/android_release_keystore.jks
           releaseKeyStorePassword=$CM_KEYSTORE_PASSWORD
           releaseKeyAlias=$CM_KEY_ALIAS
           releaseKeyPassword=$CM_KEY_PASSWORD
           EOF
+
 
       - name: Install dependencies
         script: flutter pub get
