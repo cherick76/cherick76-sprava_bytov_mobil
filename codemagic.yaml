@@ -1,0 +1,32 @@
+workflows:
+  android-release:
+    name: android-release
+    max_build_duration: 60
+    instance_type: linux_x2
+
+    triggering:
+      events:
+        - push
+      branch_patterns:
+        - pattern: main
+          include: true
+          source: true
+
+    environment:
+      flutter: stable
+
+    scripts:
+      - name: Install dependencies
+        script: flutter pub get
+
+      - name: Analyze project
+        script: flutter analyze
+
+      - name: Run tests
+        script: flutter test
+
+      - name: Build release APK
+        script: flutter build apk --release
+
+    artifacts:
+      - build/app/outputs/flutter-apk/app-release.apk
