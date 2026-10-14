@@ -2,7 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:http/http.dart' as poziadavkyHttp;
+import 'package:http/http.dart' as http;
 
 class RegistraciaObrazovka extends StatefulWidget {
   const RegistraciaObrazovka({
@@ -95,7 +95,7 @@ class _StavRegistracnejObrazovky extends State<RegistraciaObrazovka> {
     setState(() => _odosielaSa = true);
 
     try {
-      final odpoved = await poziadavkyHttp.post(
+      final odpoved = await http.post(
         widget.adresaApi.resolve('/api/registracia.php'),
         headers: const {'Content-Type': 'application/json; charset=utf-8'},
         body: jsonEncode({
@@ -189,7 +189,7 @@ class _StavRegistracnejObrazovky extends State<RegistraciaObrazovka> {
     final farby = Theme.of(context).colorScheme;
 
     return Theme(
-      data: Theme.of(context).copyWith(useMaterial3: true),
+      data: Theme.of(context),
       child: Scaffold(
         appBar: AppBar(title: const Text('Registrácia vlastníka')),
         body: SafeArea(

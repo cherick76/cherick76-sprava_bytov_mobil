@@ -1,7 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as poziadavkyHttp;
+import 'package:http/http.dart' as http;
 
 class PrehladObrazovka extends StatefulWidget {
   const PrehladObrazovka({
@@ -42,11 +42,11 @@ class _StavPrehladuObrazovky extends State<PrehladObrazovka> {
       };
 
       final odpovede = await Future.wait([
-        poziadavkyHttp.get(
+        http.get(
           widget.adresaApi.resolve('/api/oznamy.php'),
           headers: hlavicky,
         ),
-        poziadavkyHttp.get(
+        http.get(
           widget.adresaApi.resolve('/api/smeti_najblizsie.php'),
           headers: hlavicky,
         ),
@@ -83,7 +83,7 @@ class _StavPrehladuObrazovky extends State<PrehladObrazovka> {
     }
   }
 
-  List<Map<String, dynamic>> _spracovatOznamy(poziadavkyHttp.Response odpoved) {
+  List<Map<String, dynamic>> _spracovatOznamy(http.Response odpoved) {
     if (odpoved.statusCode != 200) {
       throw ChybaApi(_spravaChyby(odpoved));
     }
@@ -96,7 +96,7 @@ class _StavPrehladuObrazovky extends State<PrehladObrazovka> {
     return obsah.whereType<Map<String, dynamic>>().toList(growable: false);
   }
 
-  Map<String, dynamic>? _spracovatOdvoz(poziadavkyHttp.Response odpoved) {
+  Map<String, dynamic>? _spracovatOdvoz(http.Response odpoved) {
     if (odpoved.statusCode != 200) {
       throw ChybaApi(_spravaChyby(odpoved));
     }
@@ -112,7 +112,7 @@ class _StavPrehladuObrazovky extends State<PrehladObrazovka> {
     return obsah;
   }
 
-  String _spravaChyby(poziadavkyHttp.Response odpoved) {
+  String _spravaChyby(http.Response odpoved) {
     try {
       final dynamic obsah = jsonDecode(odpoved.body);
       if (obsah is Map<String, dynamic> && obsah['sprava'] is String) {
@@ -245,7 +245,7 @@ class _StavPrehladuObrazovky extends State<PrehladObrazovka> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Najbližší odvoz smetí', style: TextStyle(color: farbaTextu.withOpacity(0.75))),
+                  Text('Najbližší odvoz smetí', style: TextStyle(color: farbaTextu.withValues(alpha: 0.75))),
                   const SizedBox(height: 6),
                   Text(
                     _nazovOdpadu(typOdpadu),
@@ -320,7 +320,7 @@ class _StavPrehladuObrazovky extends State<PrehladObrazovka> {
     final farby = Theme.of(context).colorScheme;
 
     return Theme(
-      data: Theme.of(context).copyWith(useMaterial3: true),
+      data: Theme.of(context),
       child: Scaffold(
         appBar: AppBar(
           title: const Text('Prehľad domu'),

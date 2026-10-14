@@ -1,7 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/network/api_client.dart';
-import '../../../../core/storage/token_storage.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 
 class DashboardData {
@@ -35,21 +34,29 @@ final dashboardProvider = FutureProvider<DashboardData>((ref) async {
     requireAuth: true,
   );
 
-  final announcements = (announcementsResponse['data'] is List)
-      ? List<Map<String, dynamic>>.from(
-          (announcementsResponse['data'] as List).whereType<Map>(),
-        )
-      : (announcementsResponse is List)
-          ? List<Map<String, dynamic>>.from(
-              (announcementsResponse as List).whereType<Map>(),
-            )
-          : <Map<String, dynamic>>[];
+  final announcementsPayload = announcementsResponse is Map
+      ? announcementsResponse['data'] ?? announcementsResponse['oznamy']
+      : announcementsResponse;
+  if (announcementsPayload is! List) {
+    throw const ApiException('Server vrátil neplatný zoznam oznamov.');
+  }
+  final announcements = announcementsPayload
+      .whereType<Map>()
+      .map((announcement) => Map<String, dynamic>.from(
+            announcement.map(
+              (key, value) => MapEntry(key.toString(), value),
+            ),
+          ))
+      .toList(growable: false);
 
-  final nextWasteCollection = wasteResponse['data'] is Map
-      ? Map<String, dynamic>.from(wasteResponse['data'] as Map)
-      : wasteResponse is Map
-          ? Map<String, dynamic>.from(wasteResponse as Map)
-          : null;
+  final wastePayload = wasteResponse is Map
+      ? wasteResponse['data'] ?? wasteResponse['odvoz'] ?? wasteResponse
+      : wasteResponse;
+  final nextWasteCollection = wastePayload is Map
+      ? Map<String, dynamic>.from(
+          wastePayload.map((key, value) => MapEntry(key.toString(), value)),
+        )
+      : null;
 
   return DashboardData(
     announcements: announcements,

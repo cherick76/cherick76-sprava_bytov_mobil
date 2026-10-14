@@ -43,10 +43,14 @@ class ApiClient {
       body: jsonEncode(body),
     );
 
-    return _decodeJsonResponse(response);
+    final decoded = _decodeJsonResponse(response);
+    if (decoded is Map<String, dynamic>) {
+      return decoded;
+    }
+    throw const ApiException('Server vrátil neočakávaný formát odpovede.');
   }
 
-  Future<Map<String, dynamic>> getJson(
+  Future<Object?> getJson(
     String path, {
     bool requireAuth = false,
   }) async {
@@ -75,7 +79,9 @@ class ApiClient {
       if (_token != null) 'Authorization': 'Bearer $_token',
     });
 
-    fields.forEach(request.fields.addAll);
+    fields.forEach((key, value) {
+      request.fields[key] = value;
+    });
 
     if (fileKey != null && filePath != null) {
       request.files.add(
@@ -89,28 +95,29 @@ class ApiClient {
 
     final streamed = await request.send();
     final response = await http.Response.fromStream(streamed);
-    return _decodeJsonResponse(response);
+    final decoded = _decodeJsonResponse(response);
+    if (decoded is Map<String, dynamic>) {
+      return decoded;
+    }
+    throw const ApiException('Server vrátil neočakávaný formát odpovede.');
   }
 
-  Map<String, dynamic> _decodeJsonResponse(http.Response response) {
+  Object? _decodeJsonResponse(http.Response response) {
     final body = utf8.decode(response.bodyBytes);
-    Map<String, dynamic> decoded;
+    Object? decoded;
 
     try {
-      final dynamic parsed = jsonDecode(body);
-      if (parsed is Map<String, dynamic>) {
-        decoded = parsed;
-      } else if (parsed is Map) {
-        decoded = parsed.map((key, value) => MapEntry(key.toString(), value));
-      } else {
-        throw const FormatException('Invalid response payload.');
-      }
+      decoded = jsonDecode(body);
     } on FormatException {
       throw ApiException('Server vrátil neplatnú odpoveď.');
     }
 
     if (response.statusCode < 200 || response.statusCode >= 300) {
-      final message = decoded['sprava'] ?? decoded['chyba'] ?? 'Request failed.';
+      final payload = decoded is Map
+          ? decoded.map((key, value) => MapEntry(key.toString(), value))
+          : const <String, dynamic>{};
+      final message =
+          payload['sprava'] ?? payload['chyba'] ?? 'Požiadavka zlyhala.';
       throw ApiException(message.toString());
     }
 

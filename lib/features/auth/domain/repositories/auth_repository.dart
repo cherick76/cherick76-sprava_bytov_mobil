@@ -1,5 +1,4 @@
 import '../entities/auth_session.dart';
-import '../entities/auth_user.dart';
 
 class SignInRequest {
   const SignInRequest({

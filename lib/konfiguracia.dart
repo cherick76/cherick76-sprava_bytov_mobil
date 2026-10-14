@@ -1,1 +1,1 @@
-const String BASE_URL = 'https://vasadomena.sk';
+const String baseUrl = 'https://sb.chudy.online';

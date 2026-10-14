@@ -1,10 +1,10 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as poziadavkyHttp;
+import 'package:http/http.dart' as http;
 
-import '../sluzby/UloziskoTokena.dart';
-import 'PrehladObrazovka.dart';
+import '../sluzby/ulozisko_tokena.dart';
+import 'prehlad_obrazovka.dart';
 
 class PrihlasenieObrazovka extends StatefulWidget {
   const PrihlasenieObrazovka({
@@ -41,7 +41,7 @@ class _StavPrihlaseniaObrazovky extends State<PrihlasenieObrazovka> {
 
     setState(() => _odosielaSa = true);
     try {
-      final odpoved = await poziadavkyHttp.post(
+      final odpoved = await http.post(
         widget.adresaApi.resolve('/api/prihlasenie.php'),
         headers: const {
           'Accept': 'application/json',
@@ -81,10 +81,7 @@ class _StavPrihlaseniaObrazovky extends State<PrihlasenieObrazovka> {
     } on FormatException {
       _zobrazitSpravu('Server vrátil neplatnú odpoveď.');
     } on StateError catch (vynimka) {
-      final sprava = vynimka.message;
-      _zobrazitSpravu(
-        sprava is String ? sprava : 'Prihlásenie sa nepodarilo.',
-      );
+      _zobrazitSpravu(vynimka.message.toString());
     } catch (_) {
       _zobrazitSpravu(
         'Prihlásenie sa nepodarilo. Skontrolujte pripojenie a skúste to znova.',

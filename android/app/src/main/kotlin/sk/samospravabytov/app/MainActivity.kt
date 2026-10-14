@@ -1,4 +1,4 @@
-package com.example.samosprava_bytov
+package sk.samospravabytov.app
 
 import io.flutter.embedding.android.FlutterActivity
 

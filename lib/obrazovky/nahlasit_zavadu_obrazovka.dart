@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as poziadavkyHttp;
+import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 
 class NahlasitZavaduObrazovka extends StatefulWidget {
@@ -112,7 +112,7 @@ class _StavNahlaseniaZavadyObrazovky extends State<NahlasitZavaduObrazovka> {
     setState(() => _odosielaSa = true);
 
     try {
-      final poziadavka = poziadavkyHttp.MultipartRequest(
+      final poziadavka = http.MultipartRequest(
         'POST',
         widget.adresaApi.resolve('/api/zavady_nahlasit.php'),
       )
@@ -124,7 +124,7 @@ class _StavNahlaseniaZavadyObrazovky extends State<NahlasitZavaduObrazovka> {
 
       if (_fotografia != null) {
         poziadavka.files.add(
-          await poziadavkyHttp.MultipartFile.fromPath(
+          await http.MultipartFile.fromPath(
             'foto',
             _fotografia!.path,
           ),
@@ -132,7 +132,7 @@ class _StavNahlaseniaZavadyObrazovky extends State<NahlasitZavaduObrazovka> {
       }
 
       final odoslana = await poziadavka.send().timeout(const Duration(seconds: 60));
-      final odpoved = await poziadavkyHttp.Response.fromStream(odoslana)
+      final odpoved = await http.Response.fromStream(odoslana)
           .timeout(const Duration(seconds: 15));
       dynamic obsah;
       try {
@@ -217,7 +217,7 @@ class _StavNahlaseniaZavadyObrazovky extends State<NahlasitZavaduObrazovka> {
     final farby = Theme.of(context).colorScheme;
 
     return Theme(
-      data: Theme.of(context).copyWith(useMaterial3: true),
+      data: Theme.of(context),
       child: Scaffold(
         appBar: AppBar(title: const Text('Nahlásiť závadu')),
         body: SafeArea(

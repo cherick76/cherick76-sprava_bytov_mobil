@@ -1,7 +1,9 @@
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class UloziskoTokena {
-  UloziskoTokena({FlutterSecureStorage? ulozisko})
+  UloziskoTokena({
+    FlutterSecureStorage? ulozisko,
+  })
       : _ulozisko = ulozisko ?? const FlutterSecureStorage();
 
   static const String _klucTokena = 'jwt_token';

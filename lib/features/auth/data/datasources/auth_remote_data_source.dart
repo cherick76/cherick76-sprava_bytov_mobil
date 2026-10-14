@@ -1,4 +1,4 @@
-import '../../../core/network/api_client.dart';
+import '../../../../core/network/api_client.dart';
 import '../../domain/entities/auth_session.dart';
 import '../../domain/entities/auth_user.dart';
 import '../../domain/repositories/auth_repository.dart';

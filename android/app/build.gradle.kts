@@ -1,11 +1,40 @@
+import org.gradle.api.GradleException
+
 plugins {
     id("com.android.application")
     // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id("dev.flutter.flutter-gradle-plugin")
 }
 
+val releaseSigning = mapOf(
+    "keystore" to (System.getenv("CM_KEYSTORE") ?: System.getenv("CM_KEYSTORE_PATH")),
+    "keystorePassword" to System.getenv("CM_KEYSTORE_PASSWORD"),
+    "keyAlias" to System.getenv("CM_KEY_ALIAS"),
+    "keyPassword" to System.getenv("CM_KEY_PASSWORD"),
+)
+val releaseSigningRequested = gradle.startParameter.taskNames.any {
+    it.contains("release", ignoreCase = true)
+}
+val missingReleaseSigningValues = releaseSigning
+    .filterValues { it.isNullOrBlank() }
+    .keys
+    .toMutableSet()
+if (
+    releaseSigningRequested &&
+    releaseSigning["keystore"]?.let { file(it).isFile } != true
+) {
+    missingReleaseSigningValues += "keystore file"
+}
+
+if (releaseSigningRequested && missingReleaseSigningValues.isNotEmpty()) {
+    throw GradleException(
+        "Release signing is not configured. Missing environment variables for: " +
+            missingReleaseSigningValues.joinToString(),
+    )
+}
+
 android {
-    namespace = "com.example.samosprava_bytov"
+    namespace = "sk.samospravabytov.app"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -16,7 +45,7 @@ android {
 
     defaultConfig {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId = "com.example.samosprava_bytov"
+        applicationId = "sk.samospravabytov.app"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion
@@ -29,11 +58,18 @@ android {
         versionName = flutter.versionName
     }
 
+    signingConfigs {
+        create("release") {
+            releaseSigning["keystore"]?.let { storeFile = file(it) }
+            releaseSigning["keystorePassword"]?.let { storePassword = it }
+            releaseSigning["keyAlias"]?.let { keyAlias = it }
+            releaseSigning["keyPassword"]?.let { keyPassword = it }
+        }
+    }
+
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig = signingConfigs.getByName("debug")
+            signingConfig = signingConfigs.getByName("release")
         }
     }
 }

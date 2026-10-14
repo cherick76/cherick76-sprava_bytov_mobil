@@ -3,7 +3,7 @@ class AppConfig {
 
   static const String baseUrl = String.fromEnvironment(
     'BASE_URL',
-    defaultValue: 'https://vasadomena.sk',
+    defaultValue: 'https://sb.chudy.online',
   );
 
   static const bool isProduction = bool.fromEnvironment(
@@ -12,7 +12,10 @@ class AppConfig {
   );
 
   static Uri apiUri(String path) {
-    final normalizedPath = path.startsWith('/') ? path : '/$path';
-    return Uri.parse('$baseUrl$normalizedPath');
+    final baseUri = Uri.parse(
+      baseUrl.endsWith('/') ? baseUrl : '$baseUrl/',
+    );
+    final relativePath = path.startsWith('/') ? path.substring(1) : path;
+    return baseUri.resolve(relativePath);
   }
 }

@@ -1,13 +1,52 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
+import '../../../auth/presentation/providers/auth_provider.dart';
 import '../providers/dashboard_provider.dart';
 
-class DashboardScreen extends ConsumerWidget {
+class DashboardScreen extends ConsumerStatefulWidget {
   const DashboardScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<DashboardScreen> createState() => _DashboardScreenState();
+}
+
+class _DashboardScreenState extends ConsumerState<DashboardScreen> {
+  bool _isSigningOut = false;
+
+  Future<void> _signOut() async {
+    setState(() => _isSigningOut = true);
+
+    try {
+      await ref.read(authControllerProvider.notifier).signOut();
+      if (mounted) {
+        context.go('/sign-in');
+      }
+    } catch (error) {
+      if (!mounted) {
+        return;
+      }
+
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(
+            content: Text('Odhlásenie sa nepodarilo: $error'),
+            behavior: SnackBarBehavior.floating,
+            backgroundColor: Theme.of(context).colorScheme.error,
+          ),
+        );
+    } finally {
+      if (mounted) {
+        setState(() => _isSigningOut = false);
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final ref = this.ref;
     final dashboardState = ref.watch(dashboardProvider);
 
     return Scaffold(
@@ -16,7 +55,19 @@ class DashboardScreen extends ConsumerWidget {
         actions: [
           IconButton(
             onPressed: () => ref.invalidate(dashboardProvider),
+            tooltip: 'Obnoviť prehľad',
             icon: const Icon(Icons.refresh),
+          ),
+          IconButton(
+            onPressed: _isSigningOut ? null : _signOut,
+            tooltip: 'Odhlásiť sa',
+            icon: _isSigningOut
+                ? const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : const Icon(Icons.logout),
           ),
         ],
       ),

@@ -1,7 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/network/api_client.dart';
-import '../../../core/storage/token_storage.dart';
+import '../../../../core/network/api_client.dart';
+import '../../../../core/storage/token_storage.dart';
 import '../../data/datasources/auth_remote_data_source.dart';
 import '../../data/repositories/auth_repository_impl.dart';
 import '../../domain/entities/auth_session.dart';
@@ -10,7 +10,7 @@ import '../../domain/repositories/auth_repository.dart';
 
 class AuthState {
   const AuthState({
-    this.status = AuthStatus.initial,
+    this.status = AuthStatus.restoringSession,
     this.session,
     this.message,
   });
@@ -19,7 +19,7 @@ class AuthState {
   final AuthSession? session;
   final String? message;
 
-  factory AuthState.initial() => const AuthState();
+  factory AuthState.restoringSession() => const AuthState();
 
   factory AuthState.loading() => const AuthState(status: AuthStatus.loading);
 
@@ -39,7 +39,7 @@ class AuthState {
 }
 
 enum AuthStatus {
-  initial,
+  restoringSession,
   loading,
   authenticated,
   unauthenticated,
@@ -69,23 +69,30 @@ final authRepositoryProvider = Provider<AuthRepository>((ref) {
 });
 
 class AuthController extends StateNotifier<AuthState> {
-  AuthController(this._repository) : super(AuthState.initial());
+  AuthController(this._repository)
+      : super(AuthState.restoringSession());
 
   final AuthRepository _repository;
 
   Future<void> initializeSession() async {
-    final token = await _repository.readToken();
-    if (token == null || token.isEmpty) {
-      state = AuthState.unauthenticated();
-      return;
-    }
+    try {
+      final token = await _repository.readToken();
+      if (token == null || token.isEmpty) {
+        state = AuthState.unauthenticated();
+        return;
+      }
 
-    state = AuthState.authenticated(
-      AuthSession(
-        user: const AuthUser(email: ''),
-        token: token,
-      ),
-    );
+      state = AuthState.authenticated(
+        AuthSession(
+          user: const AuthUser(email: ''),
+          token: token,
+        ),
+      );
+    } catch (_) {
+      state = AuthState.error(
+        'Stav prihlásenia sa nepodarilo obnoviť. Prihláste sa znova.',
+      );
+    }
   }
 
   Future<void> signIn({
